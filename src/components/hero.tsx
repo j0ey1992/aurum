@@ -12,7 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp, TrendingDown, RefreshCw, Clock, Award } from "lucide-react";
+import { TrendingUp, TrendingDown, RefreshCw, Clock, Award, DollarSign, BarChart } from "lucide-react";
 
 // Mock gold price data (we would fetch real data in production)
 const generateMockGoldData = (days = 30) => {
@@ -40,6 +40,8 @@ interface Prediction {
   direction: "up" | "down";
   result?: "correct" | "incorrect";
   priceAtPrediction: number;
+  amount?: number;
+  pnl?: number;
 }
 
 export function Hero() {
@@ -52,6 +54,10 @@ export function Hero() {
   const [showPredictionModal, setShowPredictionModal] = useState(false);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
+  const [virtualBalance, setVirtualBalance] = useState(10000);
+  const [predictionAmount, setPredictionAmount] = useState(100);
+  const [predictionTimeframe, setPredictionTimeframe] = useState<"5s" | "15s" | "30s" | "1m">("5s");
+  const [totalPnL, setTotalPnL] = useState(0);
 
   // Simulate fetching gold price data
   const fetchGoldData = (days: number) => {
@@ -101,18 +107,33 @@ export function Hero() {
     fetchGoldData(days);
   }, [timeframe]);
 
+  // Get prediction timeframe in milliseconds
+  const getPredictionTimeframeMs = () => {
+    switch (predictionTimeframe) {
+      case "5s": return 5000;
+      case "15s": return 15000;
+      case "30s": return 30000;
+      case "1m": return 60000;
+      default: return 5000;
+    }
+  };
+
   // Make a prediction
   const makePrediction = (direction: "up" | "down") => {
+    // Deduct prediction amount from virtual balance
+    setVirtualBalance(prev => prev - predictionAmount);
+    
     const newPrediction: Prediction = {
       timestamp: Date.now(),
       direction,
       priceAtPrediction: currentPrice,
+      amount: predictionAmount
     };
     
     setPredictions([newPrediction, ...predictions]);
     setShowPredictionModal(false);
     
-    // Simulate price change after 5 seconds
+    // Simulate price change after selected timeframe
     setTimeout(() => {
       // Generate a new price with bias toward the actual trend
       // but still with some randomness to make the game interesting
@@ -136,10 +157,21 @@ export function Hero() {
                      (direction === "down" && newPrice < currentPrice)
                      ? "correct" as const : "incorrect" as const;
       
+      // Calculate PnL (profit and loss)
+      const pnl = result === "correct" 
+        ? predictionAmount * 1.9  // 90% profit if correct
+        : 0;                      // 100% loss if incorrect
+      
+      // Update virtual balance
+      setVirtualBalance(prev => prev + pnl);
+      
+      // Update total PnL
+      setTotalPnL(prev => prev + (pnl - predictionAmount));
+      
       // Update prediction with result
       const updatedPredictions = predictions.map((pred, index) => {
         if (index === 0) {
-          return { ...pred, result };
+          return { ...pred, result, pnl };
         }
         return pred;
       });
@@ -172,7 +204,7 @@ export function Hero() {
       
       setPriceChange(parseFloat(change.toFixed(2)));
       setPriceChangePercent(parseFloat(changePercent.toFixed(2)));
-    }, 5000);
+    }, getPredictionTimeframeMs());
   };
 
   // Format date for chart tooltip
@@ -208,13 +240,13 @@ export function Hero() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="text-white">Trade Gold with </span>
+                <span className="text-white">AurumTrust: </span>
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-yellow-500">
-                  Confidence
+                  Scarcity By Design
                 </span>
               </h1>
               <p className="mt-4 text-xl text-white/70 max-w-lg">
-                Track real-time gold prices and test your prediction skills with our interactive mini-game.
+                The gold-backed deflationary token experiment on Cronos Chain. Burn mechanism funded by real gold trading profits.
               </p>
             </motion.div>
 
@@ -228,7 +260,7 @@ export function Hero() {
                 onClick={() => setShowPredictionModal(true)}
                 className="px-6 py-3 rounded-lg bg-gradient-to-r from-amber-300 to-yellow-400 text-black font-medium hover:shadow-lg hover:shadow-amber-500/20 transition-all"
               >
-                Predict Gold Price
+                Trade Gold Now
               </button>
               <button className="px-6 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all">
                 Learn More
@@ -243,20 +275,22 @@ export function Hero() {
               className="grid grid-cols-2 gap-4 mt-8"
             >
               <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-xl p-4">
-                <p className="text-white/60 text-sm">Your Predictions</p>
+                <p className="text-white/60 text-sm">Trading Account</p>
                 <div className="flex items-center gap-4 mt-2">
                   <div>
-                    <p className="text-green-400 font-medium">{stats.correct}</p>
-                    <p className="text-xs text-white/50">Correct</p>
+                    <p className="text-white font-medium">${virtualBalance.toFixed(2)}</p>
+                    <p className="text-xs text-white/50">Balance</p>
                   </div>
                   <div>
-                    <p className="text-red-400 font-medium">{stats.incorrect}</p>
-                    <p className="text-xs text-white/50">Incorrect</p>
+                    <p className={`${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'} font-medium`}>
+                      {totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-white/50">Total P&L</p>
                   </div>
                 </div>
               </div>
               <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-xl p-4">
-                <p className="text-white/60 text-sm">Accuracy Rate</p>
+                <p className="text-white/60 text-sm">Win Rate</p>
                 <p className="text-2xl font-bold text-white mt-1">
                   {stats.correct + stats.incorrect > 0
                     ? `${Math.round((stats.correct / (stats.correct + stats.incorrect)) * 100)}%`
@@ -355,7 +389,7 @@ export function Hero() {
             {/* Recent predictions */}
             {predictions.length > 0 && (
               <div className="mt-6 border-t border-white/5 pt-4">
-                <h3 className="text-white font-medium mb-3">Recent Predictions</h3>
+                <h3 className="text-white font-medium mb-3">Recent Trades</h3>
                 <div className="space-y-2 max-h-[120px] overflow-y-auto">
                   {predictions.slice(0, 5).map((pred, index) => (
                     <div 
@@ -374,7 +408,7 @@ export function Hero() {
                         </div>
                         <div>
                           <p className="text-sm text-white">
-                            Predicted {pred.direction}
+                            {pred.direction === 'up' ? 'Long' : 'Short'} ${pred.amount?.toFixed(2)}
                           </p>
                           <p className="text-xs text-white/50">
                             <Clock size={10} className="inline mr-1" />
@@ -383,19 +417,26 @@ export function Hero() {
                         </div>
                       </div>
                       {pred.result && (
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          pred.result === 'correct' 
-                            ? 'bg-green-400/20 text-green-400' 
-                            : 'bg-red-400/20 text-red-400'
-                        }`}>
-                          {pred.result === 'correct' ? (
-                            <span className="flex items-center">
-                              <Award size={12} className="mr-1" />
-                              Correct
-                            </span>
-                          ) : (
-                            'Incorrect'
-                          )}
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm font-medium ${
+                            pred.pnl && pred.pnl > 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {pred.pnl ? (pred.pnl > 0 ? '+' : '') + '$' + pred.pnl.toFixed(2) : '-'}
+                          </p>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            pred.result === 'correct' 
+                              ? 'bg-green-400/20 text-green-400' 
+                              : 'bg-red-400/20 text-red-400'
+                          }`}>
+                            {pred.result === 'correct' ? (
+                              <span className="flex items-center">
+                                <Award size={12} className="mr-1" />
+                                Win
+                              </span>
+                            ) : (
+                              'Loss'
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -424,31 +465,83 @@ export function Hero() {
               className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 max-w-md w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-bold text-white mb-4">Predict Gold Price Movement</h2>
+              <h2 className="text-xl font-bold text-white mb-4">Gold Perpetual Trading</h2>
               <p className="text-white/70 mb-6">
-                Do you think the gold price will go up or down in the next 5 seconds?
+                Do you think the gold price will go up or down? Place your trade!
               </p>
+              
+              {/* Trade amount selector */}
+              <div className="mb-6">
+                <label className="text-white/70 text-sm block mb-2">Trade Amount</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="10"
+                    max={Math.min(1000, virtualBalance)}
+                    step="10"
+                    value={predictionAmount}
+                    onChange={(e) => setPredictionAmount(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <div className="bg-white/10 px-3 py-2 rounded-lg text-white font-medium min-w-[80px] text-center">
+                    ${predictionAmount}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Timeframe selector */}
+              <div className="mb-6">
+                <label className="text-white/70 text-sm block mb-2">Timeframe</label>
+                <div className="grid grid-cols-4 gap-2 bg-[#2a2a2a] rounded-lg p-1">
+                  {(["5s", "15s", "30s", "1m"] as const).map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => setPredictionTimeframe(time)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md ${
+                        predictionTimeframe === time
+                          ? 'bg-amber-400 text-black'
+                          : 'text-white/70 hover:text-white'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => makePrediction("up")}
                   className="flex flex-col items-center justify-center p-6 rounded-xl bg-green-400/10 border border-green-400/30 hover:bg-green-400/20 transition-colors"
+                  disabled={predictionAmount > virtualBalance}
                 >
                   <TrendingUp size={32} className="text-green-400 mb-2" />
-                  <span className="text-green-400 font-medium">Going Up</span>
+                  <span className="text-green-400 font-medium">Long</span>
                 </button>
                 
                 <button
                   onClick={() => makePrediction("down")}
                   className="flex flex-col items-center justify-center p-6 rounded-xl bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-colors"
+                  disabled={predictionAmount > virtualBalance}
                 >
                   <TrendingDown size={32} className="text-red-400 mb-2" />
-                  <span className="text-red-400 font-medium">Going Down</span>
+                  <span className="text-red-400 font-medium">Short</span>
                 </button>
               </div>
               
+              <div className="mt-6 p-3 bg-white/5 rounded-lg">
+                <div className="flex justify-between text-sm text-white/70">
+                  <span>Potential Profit:</span>
+                  <span className="text-green-400">${(predictionAmount * 0.9).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-white/70 mt-1">
+                  <span>Potential Loss:</span>
+                  <span className="text-red-400">${predictionAmount.toFixed(2)}</span>
+                </div>
+              </div>
+              
               <p className="text-white/50 text-xs mt-6 text-center">
-                This is a simulated game. No real trading occurs.
+                This is a simulated trading game. No real trading occurs.
               </p>
             </motion.div>
           </motion.div>
