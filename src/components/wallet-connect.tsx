@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, ChevronDown, Copy, ExternalLink, LogOut } from "lucide-react";
 import { tokenService, AUT_TOKEN_ADDRESS } from "@/services/tokenService";
 import { ethers } from "ethers";
-import { useAppKit, useAppKitAccount, useDisconnect } from "@reown/appkit/react";
+import { useAppKit, useAppKitAccount, useDisconnect, useAppKitNetwork } from "@reown/appkit/react";
 
 interface WalletConnectProps {
   className?: string;
@@ -14,6 +14,7 @@ interface WalletConnectProps {
 export function WalletConnect({ className }: WalletConnectProps) {
   // Use AppKit hooks for wallet connection state
   const { address, isConnected } = useAppKitAccount();
+  const { chainId } = useAppKitNetwork();
   
   // UI state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -69,8 +70,32 @@ export function WalletConnect({ className }: WalletConnectProps) {
           if (ethereum) {
             // Use ethers to create a provider
             const provider = new ethers.BrowserProvider(ethereum);
-            const balance = await tokenService.getBalance(provider, address);
-            setAutBalance(balance);
+            
+            // Check if we're on Cronos chain (id: 25)
+            console.log("Current chainId:", chainId);
+            
+            // Handle different possible formats of chainId (number, string, or CAIP format)
+            // The chainId from useAppKitNetwork() could be:
+            // 1. A number: 25
+            // 2. A string: "25"
+            // 3. In CAIP format: "eip155:25"
+            const isCronos = 
+              chainId === 25 || 
+              chainId === "25" || 
+              chainId === "eip155:25" || 
+              (typeof chainId === "string" && chainId.endsWith(":25"));
+            
+            console.log("Is Cronos chain:", isCronos);
+            
+            // Always try to fetch the balance regardless of chain
+            try {
+              const balance = await tokenService.getBalance(provider, address);
+              console.log("Fetched AUT balance:", balance);
+              setAutBalance(balance);
+            } catch (error) {
+              console.error("Error fetching AUT balance:", error);
+              setAutBalance("0");
+            }
           }
         } catch (error) {
           console.error("Error getting token balance:", error);
@@ -82,7 +107,7 @@ export function WalletConnect({ className }: WalletConnectProps) {
     if (isConnected && address) {
       getTokenBalance();
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, chainId]);
 
   return (
     <div className={`relative ${className}`}>
