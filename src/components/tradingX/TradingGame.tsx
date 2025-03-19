@@ -473,7 +473,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-[#2a2a2a] p-3 rounded-lg shadow-lg border border-white/10 max-w-md z-10"
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#2a2a2a] p-3 rounded-lg shadow-lg border border-white/10 max-w-md z-50"
             >
               <div className="flex gap-2">
                 <Info size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
@@ -481,7 +481,12 @@ export function TradingGame({ className = "" }: TradingGameProps) {
                   <p className="text-white text-sm">{tooltips[showTooltip as keyof typeof tooltips]}</p>
                 </div>
               </div>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-[#2a2a2a] border-r border-b border-white/10 rotate-45"></div>
+              <button
+                onClick={() => setShowTooltip(null)}
+                className="absolute top-2 right-2 text-white/50 hover:text-white"
+              >
+                <X size={14} />
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -610,14 +615,14 @@ export function TradingGame({ className = "" }: TradingGameProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto"
             onClick={() => setShowTradingForm(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="max-w-md w-full mx-auto my-8"
+              className="max-w-md w-full mx-auto my-8 overflow-visible"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-end mb-2">

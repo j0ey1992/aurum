@@ -10,7 +10,8 @@ import {
   Info, 
   HelpCircle,
   ArrowRight,
-  Check
+  Check,
+  X
 } from "lucide-react";
 import { LeverageSelector } from "./LeverageSelector";
 import { OrderParams } from "./types";
@@ -191,9 +192,20 @@ export function TradingForm({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="absolute -top-12 left-0 right-0 bg-[#2a2a2a] p-2 rounded-lg text-xs text-white/80 z-10 border border-white/10"
+          className="absolute top-full mt-1 left-0 right-0 bg-[#2a2a2a] p-3 rounded-lg text-xs text-white/80 z-[100] border border-white/10 shadow-lg"
         >
-          {content}
+          <div className="flex gap-2">
+            <Info size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              {content}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowTooltip(null)}
+            className="absolute top-2 right-2 text-white/50 hover:text-white"
+          >
+            <X size={12} />
+          </button>
         </motion.div>
       )}
     </AnimatePresence>
@@ -203,7 +215,7 @@ export function TradingForm({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-5 ${className}`}
+      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-5 overflow-visible ${className}`}
     >
       <h3 className="text-lg font-bold text-white mb-4">
         {formStep === "basic" ? "Open Position" : "Advanced Settings"}
