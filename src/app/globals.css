@@ -54,3 +54,58 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+/* AppKit Button Styling */
+.reown-connect-button {
+  --w3m-accent-color: var(--accent);
+  --w3m-accent-fill-color: var(--accent-foreground);
+  --w3m-background-color: var(--background);
+  --w3m-container-border-radius: 9999px;
+  --w3m-button-border-radius: 9999px;
+  --w3m-text-big-bold-size: 16px;
+  --w3m-z-index: 9999;
+}
+
+.reown-connect-button appkit-button::part(button) {
+  background: linear-gradient(to right, var(--gold-gradient-from), var(--gold-gradient-to));
+  color: var(--accent-foreground);
+  font-weight: 500;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reown-connect-button appkit-button::part(button):hover {
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05);
+}
+
+/* Override Web3Modal styles */
+:root {
+  --wui-color-accent-100: var(--accent) !important;
+  --wui-color-accent-090: var(--accent) !important;
+  --wui-color-accent-080: var(--accent) !important;
+  --wui-font-family: var(--font-sans) !important;
+  --wui-border-radius-m: 9999px !important;
+  --wui-border-radius-l: 12px !important;
+}
+
+wui-connect-button {
+  --wui-accent: var(--accent) !important;
+  --wui-color-modal-background: var(--background) !important;
+}
+
+wui-connect-button::part(wui-button) {
+  background: linear-gradient(to right, var(--gold-gradient-from), var(--gold-gradient-to)) !important;
+  color: var(--accent-foreground) !important;
+  font-weight: 500 !important;
+  padding: 0.375rem 1rem !important;
+  border-radius: 9999px !important;
+  transition: all 0.2s !important;
+}
+
+wui-connect-button::part(wui-button):hover {
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.1), 0 4px 6px -2px rgba(245, 158, 11, 0.05) !important;
+}

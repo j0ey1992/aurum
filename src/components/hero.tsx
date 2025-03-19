@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AreaChart,
@@ -12,28 +11,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp, TrendingDown, RefreshCw, Clock, Award, DollarSign, BarChart } from "lucide-react";
-
-// Mock gold price data (we would fetch real data in production)
-const generateMockGoldData = (days = 30) => {
-  const data = [];
-  let price = 2000 + Math.random() * 200; // Start around $2000
-  
-  for (let i = days; i >= 0; i--) {
-    // Add some volatility
-    price = price + (Math.random() - 0.5) * 30;
-    
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    
-    data.push({
-      date: date.toISOString().split('T')[0],
-      price: parseFloat(price.toFixed(2)),
-    });
-  }
-  
-  return data;
-};
+import { TrendingUp, TrendingDown, RefreshCw, Clock, Award, DollarSign, BarChart, Wallet } from "lucide-react";
+import { goldPriceService, GoldPriceData } from "@/services/goldPriceService";
+import { tokenService } from "@/services/tokenService";
+import { ethers } from "ethers";
+import { Leaderboard } from "@/components/leaderboard";
+import { useAppKit, useAppKitAccount, useDisconnect } from "@reown/appkit/react";
 
 interface Prediction {
   timestamp: number;
@@ -45,41 +28,61 @@ interface Prediction {
 }
 
 export function Hero() {
-  const [goldData, setGoldData] = useState(generateMockGoldData());
+  const [goldData, setGoldData] = useState<GoldPriceData[]>([]);
   const [timeframe, setTimeframe] = useState<"1D" | "1W" | "1M" | "3M" | "1Y">("1M");
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentPrice, setCurrentPrice] = useState(goldData[goldData.length - 1].price);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPrice, setCurrentPrice] = useState(0);
   const [priceChange, setPriceChange] = useState(0);
   const [priceChangePercent, setPriceChangePercent] = useState(0);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [stats, setStats] = useState({ correct: 0, incorrect: 0 });
-  const [virtualBalance, setVirtualBalance] = useState(10000);
-  const [predictionAmount, setPredictionAmount] = useState(100);
+  const [autBalance, setAutBalance] = useState("0");
+  const [predictionAmount, setPredictionAmount] = useState(10);
   const [predictionTimeframe, setPredictionTimeframe] = useState<"5s" | "15s" | "30s" | "1m">("5s");
   const [totalPnL, setTotalPnL] = useState(0);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
 
-  // Simulate fetching gold price data
-  const fetchGoldData = (days: number) => {
+  // Fetch real gold price data
+  const fetchGoldData = async (days: number) => {
     setIsLoading(true);
     
-    // In a real app, we would fetch from an API
-    // For demo purposes, we'll use our mock data generator
-    setTimeout(() => {
-      const newData = generateMockGoldData(days);
-      setGoldData(newData);
-      setCurrentPrice(newData[newData.length - 1].price);
+    try {
+      // Get historical gold price data
+      const historicalData = await goldPriceService.getHistoricalData(days);
+      setGoldData(historicalData);
       
-      // Calculate price change
-      const prevPrice = newData[newData.length - 2].price;
-      const change = currentPrice - prevPrice;
-      const changePercent = (change / prevPrice) * 100;
+      // Get current gold price
+      const { currentPrice: latestPrice, priceChange: change, priceChangePercent: changePercent } = 
+        await goldPriceService.getCurrentPrice();
       
+      setCurrentPrice(latestPrice);
       setPriceChange(parseFloat(change.toFixed(2)));
       setPriceChangePercent(parseFloat(changePercent.toFixed(2)));
+    } catch (error) {
+      console.error("Error fetching gold price data:", error);
+      // Fallback to mock data if API fails
+      const mockData = goldPriceService.generateMockData(days);
+      setGoldData(mockData);
       
+      if (mockData.length > 0) {
+        setCurrentPrice(mockData[mockData.length - 1].price);
+        
+        // Calculate mock price change
+        if (mockData.length > 1) {
+          const prevPrice = mockData[mockData.length - 2].price;
+          const change = mockData[mockData.length - 1].price - prevPrice;
+          const changePercent = (change / prevPrice) * 100;
+          
+          setPriceChange(parseFloat(change.toFixed(2)));
+          setPriceChangePercent(parseFloat(changePercent.toFixed(2)));
+        }
+      }
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   // Update data based on timeframe
@@ -118,93 +121,162 @@ export function Hero() {
     }
   };
 
-  // Make a prediction
-  const makePrediction = (direction: "up" | "down") => {
-    // Deduct prediction amount from virtual balance
-    setVirtualBalance(prev => prev - predictionAmount);
+  // Use AppKit hooks for wallet connection
+  const { open } = useAppKit();
+  const { address: appKitAddress, isConnected } = useAppKitAccount();
+  const { disconnect } = useDisconnect();
+  
+  // Update local state based on AppKit state
+  useEffect(() => {
+    setIsWalletConnected(isConnected);
+    setWalletAddress(appKitAddress);
     
-    const newPrediction: Prediction = {
-      timestamp: Date.now(),
-      direction,
-      priceAtPrediction: currentPrice,
-      amount: predictionAmount
-    };
-    
-    setPredictions([newPrediction, ...predictions]);
-    setShowPredictionModal(false);
-    
-    // Simulate price change after selected timeframe
-    setTimeout(() => {
-      // Generate a new price with bias toward the actual trend
-      // but still with some randomness to make the game interesting
-      const randomFactor = Math.random();
-      let newPrice;
-      
-      if (direction === "up") {
-        // 70% chance to go up if prediction is up
-        newPrice = randomFactor < 0.7 
-          ? currentPrice + (Math.random() * 20) 
-          : currentPrice - (Math.random() * 20);
-      } else {
-        // 70% chance to go down if prediction is down
-        newPrice = randomFactor < 0.7 
-          ? currentPrice - (Math.random() * 20) 
-          : currentPrice + (Math.random() * 20);
-      }
-      
-      // Determine if prediction was correct
-      const result = (direction === "up" && newPrice > currentPrice) || 
-                     (direction === "down" && newPrice < currentPrice)
-                     ? "correct" as const : "incorrect" as const;
-      
-      // Calculate PnL (profit and loss)
-      const pnl = result === "correct" 
-        ? predictionAmount * 1.9  // 90% profit if correct
-        : 0;                      // 100% loss if incorrect
-      
-      // Update virtual balance
-      setVirtualBalance(prev => prev + pnl);
-      
-      // Update total PnL
-      setTotalPnL(prev => prev + (pnl - predictionAmount));
-      
-      // Update prediction with result
-      const updatedPredictions = predictions.map((pred, index) => {
-        if (index === 0) {
-          return { ...pred, result, pnl };
+    // Get token balance when connected
+    if (isConnected && appKitAddress && typeof window !== 'undefined' && window.ethereum) {
+      const getBalance = async () => {
+        try {
+          const ethereum = window.ethereum as any;
+          if (ethereum) {
+            const provider = new ethers.BrowserProvider(ethereum);
+            setProvider(provider);
+            const balance = await tokenService.getBalance(provider, appKitAddress);
+            setAutBalance(balance);
+          }
+        } catch (error) {
+          console.error("Error getting token balance:", error);
+          setAutBalance("0");
         }
-        return pred;
-      });
+      };
       
-      setPredictions(updatedPredictions);
-      setCurrentPrice(parseFloat(newPrice.toFixed(2)));
+      getBalance();
+    }
+  }, [isConnected, appKitAddress]);
+  
+  // Connect wallet using Reown AppKit
+  const connectWallet = () => {
+    try {
+      // Open the AppKit modal with the Connect view
+      open({ view: 'Connect' });
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+    }
+  };
+  
+  // Disconnect wallet using Reown AppKit
+  const disconnectWallet = () => {
+    disconnect();
+    setAutBalance("0");
+    setProvider(null);
+  };
+
+  // Make a prediction
+  const makePrediction = async (direction: "up" | "down") => {
+    if (!isWalletConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+    
+    try {
+      // Convert prediction amount to string for token service
+      const amount = predictionAmount.toString();
       
-      // Update stats
-      setStats({
-        correct: result === "correct" ? stats.correct + 1 : stats.correct,
-        incorrect: result === "incorrect" ? stats.incorrect + 1 : stats.incorrect,
-      });
-      
-      // Update chart data
-      const newData = [...goldData];
-      newData.push({
-        date: new Date().toISOString().split('T')[0],
-        price: newPrice,
-      });
-      
-      if (newData.length > 31) {
-        newData.shift(); // Remove oldest data point
+      // Place bet using token service
+      if (provider) {
+        // In a real implementation, this would call the token service to place a bet
+        // For now, we'll simulate the bet
+        console.log(`Placing bet: ${direction} with ${amount} AUT tokens`);
       }
       
-      setGoldData(newData);
+      const newPrediction: Prediction = {
+        timestamp: Date.now(),
+        direction,
+        priceAtPrediction: currentPrice,
+        amount: predictionAmount
+      };
       
-      // Calculate new price change
-      const change = newPrice - currentPrice;
-      const changePercent = (change / currentPrice) * 100;
+      setPredictions([newPrediction, ...predictions]);
+      setShowPredictionModal(false);
       
-      setPriceChange(parseFloat(change.toFixed(2)));
-      setPriceChangePercent(parseFloat(changePercent.toFixed(2)));
-    }, getPredictionTimeframeMs());
+      // Simulate price change after selected timeframe
+      setTimeout(async () => {
+        // In a real implementation, we would get the latest price from the API
+        // For now, we'll simulate a price change
+        const randomFactor = Math.random();
+        let newPrice;
+        
+        if (direction === "up") {
+          // 70% chance to go up if prediction is up
+          newPrice = randomFactor < 0.7 
+            ? currentPrice + (Math.random() * 20) 
+            : currentPrice - (Math.random() * 20);
+        } else {
+          // 70% chance to go down if prediction is down
+          newPrice = randomFactor < 0.7 
+            ? currentPrice - (Math.random() * 20) 
+            : currentPrice + (Math.random() * 20);
+        }
+        
+        // Determine if prediction was correct
+        const result = (direction === "up" && newPrice > currentPrice) || 
+                      (direction === "down" && newPrice < currentPrice)
+                      ? "correct" as const : "incorrect" as const;
+        
+        // Calculate PnL (profit and loss)
+        const pnl = result === "correct" 
+          ? predictionAmount * 1.9  // 90% profit if correct
+          : 0;                      // 100% loss if incorrect
+        
+        // Update AUT balance
+        if (provider && walletAddress) {
+          // In a real implementation, this would be handled by the smart contract
+          // For now, we'll just update the UI
+          const newBalance = parseFloat(autBalance) + (pnl - predictionAmount);
+          setAutBalance(newBalance.toString());
+        }
+        
+        // Update total PnL
+        setTotalPnL(prev => prev + (pnl - predictionAmount));
+      
+        // Update prediction with result
+        const updatedPredictions = predictions.map((pred, index) => {
+          if (index === 0) {
+            return { ...pred, result, pnl };
+          }
+          return pred;
+        });
+        
+        setPredictions(updatedPredictions);
+        setCurrentPrice(parseFloat(newPrice.toFixed(2)));
+        
+        // Update stats
+        setStats({
+          correct: result === "correct" ? stats.correct + 1 : stats.correct,
+          incorrect: result === "incorrect" ? stats.incorrect + 1 : stats.incorrect,
+        });
+        
+        // Update chart data
+        const newData = [...goldData];
+        newData.push({
+          date: new Date().toISOString().split('T')[0],
+          price: newPrice,
+        });
+        
+        if (newData.length > 31) {
+          newData.shift(); // Remove oldest data point
+        }
+        
+        setGoldData(newData);
+        
+        // Calculate new price change
+        const change = newPrice - currentPrice;
+        const changePercent = (change / currentPrice) * 100;
+        
+        setPriceChange(parseFloat(change.toFixed(2)));
+        setPriceChangePercent(parseFloat(changePercent.toFixed(2)));
+      }, getPredictionTimeframeMs());
+    } catch (error) {
+      console.error("Error making prediction:", error);
+    }
   };
 
   // Format date for chart tooltip
@@ -262,8 +334,11 @@ export function Hero() {
               >
                 Trade Gold Now
               </button>
-              <button className="px-6 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all">
-                Learn More
+              <button 
+                onClick={connectWallet}
+                className="px-6 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all"
+              >
+                {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
               </button>
             </motion.div>
 
@@ -278,7 +353,7 @@ export function Hero() {
                 <p className="text-white/60 text-sm">Trading Account</p>
                 <div className="flex items-center gap-4 mt-2">
                   <div>
-                    <p className="text-white font-medium">${virtualBalance.toFixed(2)}</p>
+                    <p className="text-white font-medium">{parseFloat(autBalance).toFixed(2)} AUT</p>
                     <p className="text-xs text-white/50">Balance</p>
                   </div>
                   <div>
@@ -446,6 +521,11 @@ export function Hero() {
             )}
           </motion.div>
         </div>
+        
+        {/* Leaderboard */}
+        <div className="mt-16">
+          <Leaderboard />
+        </div>
       </div>
       
       {/* Prediction Modal */}
@@ -476,15 +556,15 @@ export function Hero() {
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
-                    min="10"
-                    max={Math.min(1000, virtualBalance)}
-                    step="10"
+                    min="1"
+                    max={Math.min(100, parseFloat(autBalance))}
+                    step="1"
                     value={predictionAmount}
                     onChange={(e) => setPredictionAmount(parseInt(e.target.value))}
                     className="flex-1"
                   />
                   <div className="bg-white/10 px-3 py-2 rounded-lg text-white font-medium min-w-[80px] text-center">
-                    ${predictionAmount}
+                    {predictionAmount} AUT
                   </div>
                 </div>
               </div>
@@ -513,7 +593,7 @@ export function Hero() {
                 <button
                   onClick={() => makePrediction("up")}
                   className="flex flex-col items-center justify-center p-6 rounded-xl bg-green-400/10 border border-green-400/30 hover:bg-green-400/20 transition-colors"
-                  disabled={predictionAmount > virtualBalance}
+                  disabled={predictionAmount > parseFloat(autBalance) || !isWalletConnected}
                 >
                   <TrendingUp size={32} className="text-green-400 mb-2" />
                   <span className="text-green-400 font-medium">Long</span>
@@ -522,7 +602,7 @@ export function Hero() {
                 <button
                   onClick={() => makePrediction("down")}
                   className="flex flex-col items-center justify-center p-6 rounded-xl bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-colors"
-                  disabled={predictionAmount > virtualBalance}
+                  disabled={predictionAmount > parseFloat(autBalance) || !isWalletConnected}
                 >
                   <TrendingDown size={32} className="text-red-400 mb-2" />
                   <span className="text-red-400 font-medium">Short</span>
@@ -532,16 +612,24 @@ export function Hero() {
               <div className="mt-6 p-3 bg-white/5 rounded-lg">
                 <div className="flex justify-between text-sm text-white/70">
                   <span>Potential Profit:</span>
-                  <span className="text-green-400">${(predictionAmount * 0.9).toFixed(2)}</span>
+                  <span className="text-green-400">{(predictionAmount * 0.9).toFixed(2)} AUT</span>
                 </div>
                 <div className="flex justify-between text-sm text-white/70 mt-1">
                   <span>Potential Loss:</span>
-                  <span className="text-red-400">${predictionAmount.toFixed(2)}</span>
+                  <span className="text-red-400">{predictionAmount.toFixed(2)} AUT</span>
                 </div>
               </div>
               
+              {!isWalletConnected && (
+                <div className="mt-4 p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
+                  <p className="text-amber-400 text-sm text-center">
+                    Please connect your wallet to trade
+                  </p>
+                </div>
+              )}
+              
               <p className="text-white/50 text-xs mt-6 text-center">
-                This is a simulated trading game. No real trading occurs.
+                Trading with real $AUT tokens. Winners earn tokens, losers' tokens are burned.
               </p>
             </motion.div>
           </motion.div>

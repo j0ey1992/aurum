@@ -3,17 +3,21 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Wallet, 
   Layers, 
   Menu, 
   X, 
   ChevronDown, 
   Bell, 
-  CircleCheck, 
   ExternalLink, 
   Shield, 
-  Zap
+  Zap,
+  CircleCheck,
+  Wallet,
+  Gamepad2
 } from "lucide-react";
+import Image from "next/image";
+import { WalletConnect } from "@/components/wallet-connect";
+import ConnectButton from "@/components/ConnectButton";
 import Link from "next/link";
 import {
   NavigationMenu,
@@ -157,6 +161,7 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
                 <span className="text-[10px] text-amber-300/80 -mt-1 tracking-widest">FINANCE</span>
               </div>
             </Link>
+            {/* Reown text and image removed */}
           </div>
 
           {/* Center Navigation Tabs - Desktop */}
@@ -287,35 +292,8 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
               </AnimatePresence>
             </div>
 
-            {/* Connect Wallet Button or Wallet Info */}
-            <div className="relative">
-              {walletConnected ? (
-                <motion.button
-                  className="flex items-center rounded-full bg-[#2a2a2a] border border-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-[#2a2a2a]/80 transition-all"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mr-2">
-                      <CircleCheck size={12} className="text-white" />
-                    </div>
-                    <span>{walletData.address}</span>
-                    <ChevronDown size={14} className="ml-1 text-white/50" />
-                  </div>
-                </motion.button>
-              ) : (
-                <motion.button 
-                  className="flex items-center rounded-full bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 px-4 py-1.5 text-sm font-medium text-black hover:shadow-lg hover:shadow-amber-500/20 transition-all"
-                  whileHover={{ scale: 1.03, boxShadow: "0 0 15px rgba(245, 158, 11, 0.3)" }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setWalletConnected(true)}
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Connect Wallet</span>
-                  <span className="sm:hidden">Connect</span>
-                </motion.button>
-              )}
-            </div>
+            {/* Wallet Connect Component */}
+            <WalletConnect />
 
             {/* Mobile menu button */}
             <motion.button
@@ -381,38 +359,10 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
               ))}
               
               {/* Mobile wallet section */}
-              {walletConnected ? (
-                <div className="mt-4 p-4 rounded-xl bg-[#2a2a2a]/50 border border-white/5">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                      <div className="h-5 w-5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mr-2">
-                        <CircleCheck size={12} className="text-white" />
-                      </div>
-                      <span className="text-white font-medium">{walletData.address}</span>
-                    </div>
-                    <button className="text-xs text-amber-300">Disconnect</button>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/70">Balance:</span>
-                    <span className="text-white font-medium">{walletData.balance} ETH</span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-white/70">Network:</span>
-                    <span className="text-green-400">{walletData.network}</span>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setWalletConnected(true);
-                    setIsOpen(false);
-                  }}
-                  className="w-full mt-4 flex items-center justify-center rounded-lg bg-gradient-to-r from-amber-300 to-yellow-400 px-4 py-3 text-base font-medium text-black"
-                >
-                  <Wallet className="mr-2 h-5 w-5" />
-                  Connect Wallet
-                </button>
-              )}
+              <div className="mt-4 flex flex-col space-y-3">
+                {/* Reown text and image removed */}
+                <WalletConnect />
+              </div>
             </div>
           </motion.div>
         )}
