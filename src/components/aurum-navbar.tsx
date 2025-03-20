@@ -165,9 +165,9 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
           </div>
 
           {/* Center Navigation Tabs - Desktop */}
-          <div className="hidden lg:flex flex-1 justify-center">
+          <div className="hidden md:flex flex-1 justify-center">
             <NavigationMenu>
-              <NavigationMenuList className="bg-[#2a2a2a]/80 backdrop-blur-md rounded-full px-1 py-1 flex items-center border border-white/5">
+              <NavigationMenuList className="bg-[#2a2a2a]/80 backdrop-blur-md rounded-full px-1 py-1 flex items-center border border-white/5 overflow-x-auto">
                 {navItems.map((item) => (
                   <NavigationMenuItem key={item.label}>
                     {item.children ? (
@@ -300,7 +300,7 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center rounded-full p-2 text-white/70 hover:text-white hover:bg-white/5 lg:hidden"
+              className="inline-flex items-center justify-center rounded-full p-2 text-white/70 hover:text-white hover:bg-white/5 md:hidden"
               aria-label="Toggle menu"
             >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -313,7 +313,7 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            className="lg:hidden bg-[#1a1a1a]/95 backdrop-blur-lg border-t border-white/5"
+            className="md:hidden bg-[#1a1a1a]/95 backdrop-blur-lg border-t border-white/5"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

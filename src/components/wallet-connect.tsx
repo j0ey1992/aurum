@@ -203,8 +203,13 @@ export function WalletConnect({ className }: WalletConnectProps) {
                     <ExternalLink size={14} />
                   </a>
                 </div>
-                <div className="mt-1">
-                  <span className="text-amber-400 font-medium text-lg">{autBalance} AUT</span>
+                <div className="mt-1 overflow-hidden">
+                  <span className="text-amber-400 font-medium text-lg break-all">{
+                    // Format the balance to show only 6 decimal places for better display
+                    Number(autBalance).toLocaleString(undefined, {
+                      maximumFractionDigits: 6
+                    })
+                  } AUT</span>
                 </div>
               </div>
               

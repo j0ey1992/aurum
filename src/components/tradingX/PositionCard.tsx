@@ -80,7 +80,7 @@ export function PositionCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border ${
+      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border overflow-hidden ${
         status === "open"
           ? isAtRisk
             ? "border-red-400/30"
@@ -90,10 +90,10 @@ export function PositionCard({
           : status === "liquidated"
             ? "border-red-400/30"
             : "border-white/10"
-      } rounded-xl p-4 ${className}`}
+      } rounded-xl p-3 sm:p-4 ${className}`}
     >
       {/* Header */}
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-2 sm:mb-3">
         <div className="flex items-center gap-2">
           <div className={`p-1.5 rounded-full ${
             direction === "long"
@@ -108,7 +108,7 @@ export function PositionCard({
           </div>
           <div>
             <div className="flex items-center gap-1">
-              <p className="text-sm font-medium text-white">
+              <p className="text-xs sm:text-sm font-medium text-white">
                 {direction === "long" ? "Long" : "Short"} Gold
               </p>
               <span className="text-xs text-white/50">#{id.slice(-4)}</span>
@@ -150,74 +150,74 @@ export function PositionCard({
       </div>
       
       {/* Position details */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-3">
         <div>
-          <p className="text-xs text-white/50">Size</p>
-          <p className="text-sm font-medium text-white">${size.toFixed(2)}</p>
+          <p className="text-[10px] sm:text-xs text-white/50">Size</p>
+          <p className="text-xs sm:text-sm font-medium text-white">${size.toFixed(2)}</p>
         </div>
         <div>
-          <p className="text-xs text-white/50">Margin</p>
-          <p className="text-sm font-medium text-white">{margin.toFixed(2)} AUT</p>
+          <p className="text-[10px] sm:text-xs text-white/50">Margin</p>
+          <p className="text-xs sm:text-sm font-medium text-white">{margin.toFixed(2)} AUT</p>
         </div>
         <div>
-          <p className="text-xs text-white/50">Leverage</p>
-          <p className="text-sm font-medium text-white">{leverage}x</p>
+          <p className="text-[10px] sm:text-xs text-white/50">Leverage</p>
+          <p className="text-xs sm:text-sm font-medium text-white">{leverage}x</p>
         </div>
         <div>
-          <p className="text-xs text-white/50">Entry Price</p>
-          <p className="text-sm font-medium text-white">${entryPrice.toFixed(2)}</p>
+          <p className="text-[10px] sm:text-xs text-white/50">Entry Price</p>
+          <p className="text-xs sm:text-sm font-medium text-white">${entryPrice.toFixed(2)}</p>
         </div>
         
         {status === "open" && (
           <>
             <div>
-              <p className="text-xs text-white/50">Liquidation Price</p>
-              <p className="text-sm font-medium text-red-400">${liquidationPrice.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-white/50">Liquidation Price</p>
+              <p className="text-xs sm:text-sm font-medium text-red-400">${liquidationPrice.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50">Current Price</p>
-              <p className="text-sm font-medium text-white">${currentPrice.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-white/50">Current Price</p>
+              <p className="text-xs sm:text-sm font-medium text-white">${currentPrice.toFixed(2)}</p>
             </div>
           </>
         )}
         
         {status !== "open" && exitPrice && (
           <div className="col-span-2">
-            <p className="text-xs text-white/50">Exit Price</p>
-            <p className="text-sm font-medium text-white">${exitPrice.toFixed(2)}</p>
+            <p className="text-[10px] sm:text-xs text-white/50">Exit Price</p>
+            <p className="text-xs sm:text-sm font-medium text-white">${exitPrice.toFixed(2)}</p>
           </div>
         )}
         
         {stopLoss && (
           <div>
-            <p className="text-xs text-white/50">Stop Loss</p>
-            <p className="text-sm font-medium text-red-400">${stopLoss.toFixed(2)}</p>
+            <p className="text-[10px] sm:text-xs text-white/50">Stop Loss</p>
+            <p className="text-xs sm:text-sm font-medium text-red-400">${stopLoss.toFixed(2)}</p>
           </div>
         )}
         
         {takeProfit && (
           <div>
-            <p className="text-xs text-white/50">Take Profit</p>
-            <p className="text-sm font-medium text-green-400">${takeProfit.toFixed(2)}</p>
+            <p className="text-[10px] sm:text-xs text-white/50">Take Profit</p>
+            <p className="text-xs sm:text-sm font-medium text-green-400">${takeProfit.toFixed(2)}</p>
           </div>
         )}
       </div>
       
       {/* PnL */}
-      <div className={`p-3 rounded-lg ${
+      <div className={`p-2 sm:p-3 rounded-lg ${
         currentPnl > 0
           ? "bg-green-400/10"
           : "bg-red-400/10"
       }`}>
         <div className="flex justify-between items-center">
-          <p className="text-xs text-white/70">Unrealized PnL</p>
-          <p className={`text-sm font-bold ${
+          <p className="text-[10px] sm:text-xs text-white/70">Unrealized PnL</p>
+          <p className={`text-xs sm:text-sm font-bold ${
             currentPnl > 0
               ? "text-green-400"
               : "text-red-400"
           }`}>
             {currentPnl > 0 ? "+" : ""}{currentPnl.toFixed(2)} AUT
-            <span className="text-xs ml-1">
+            <span className="text-[10px] sm:text-xs ml-1">
               ({currentPnl > 0 ? "+" : ""}{pnlPercentage.toFixed(2)}%)
             </span>
           </p>
@@ -226,9 +226,9 @@ export function PositionCard({
       
       {/* Risk warning */}
       {status === "open" && isAtRisk && (
-        <div className="mt-3 p-2 rounded-lg bg-red-400/10 border border-red-400/30 flex items-center gap-2">
+        <div className="mt-2 sm:mt-3 p-2 rounded-lg bg-red-400/10 border border-red-400/30 flex items-center gap-2">
           <AlertTriangle size={14} className="text-red-400" />
-          <p className="text-xs text-red-400">
+          <p className="text-[10px] sm:text-xs text-red-400">
             Position at risk of liquidation
           </p>
         </div>
@@ -238,14 +238,14 @@ export function PositionCard({
       {status === "open" && onManage && (
         <button
           onClick={onManage}
-          className="mt-3 w-full py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium"
+          className="mt-2 sm:mt-3 w-full py-1.5 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-medium"
         >
           Manage Position
         </button>
       )}
       
       {/* View on explorer link */}
-      <div className="mt-3 text-center">
+      <div className="mt-2 sm:mt-3 text-center">
         <a
           href="#"
           className="text-xs text-white/50 hover:text-white/70 flex items-center justify-center gap-1"

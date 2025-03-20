@@ -192,7 +192,7 @@ export function TradingForm({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="absolute top-full mt-1 left-0 right-0 bg-[#2a2a2a] p-3 rounded-lg text-xs text-white/80 z-[100] border border-white/10 shadow-lg"
+          className="absolute top-full mt-1 left-0 right-0 bg-[#2a2a2a] p-3 rounded-lg text-xs text-white/80 z-[500] border border-white/10 shadow-lg"
         >
           <div className="flex gap-2">
             <Info size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
@@ -215,9 +215,9 @@ export function TradingForm({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-5 overflow-visible ${className}`}
+      className={`bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-5 overflow-visible relative z-10 mt-4 ${className}`}
     >
-      <h3 className="text-lg font-bold text-white mb-4">
+      <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">
         {formStep === "basic" ? "Open Position" : "Advanced Settings"}
         {formStep === "advanced" && (
           <button 
@@ -230,7 +230,7 @@ export function TradingForm({
         )}
       </h3>
       
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         {/* Step 1: Basic Settings */}
         {formStep === "basic" && (
           <>
@@ -249,18 +249,18 @@ export function TradingForm({
               
               {renderTooltip("direction", direction === "long" ? tooltips.long : tooltips.short)}
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setDirection("long")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl ${
+                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl ${
                     direction === "long"
                       ? "bg-green-400/10 border border-green-400/30"
                       : "bg-white/5 border border-white/10 hover:bg-white/10"
                   }`}
                 >
                   <TrendingUp
-                    size={24}
+                    size={20}
                     className={direction === "long" ? "text-green-400" : "text-white/70"}
                   />
                   <span
@@ -275,14 +275,14 @@ export function TradingForm({
                 <button
                   type="button"
                   onClick={() => setDirection("short")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl ${
+                  className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl ${
                     direction === "short"
                       ? "bg-red-400/10 border border-red-400/30"
                       : "bg-white/5 border border-white/10 hover:bg-white/10"
                   }`}
                 >
                   <TrendingDown
-                    size={24}
+                    size={20}
                     className={direction === "short" ? "text-red-400" : "text-white/70"}
                   />
                   <span
@@ -303,7 +303,7 @@ export function TradingForm({
             </div>
         
             {/* Price display */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3">
               <div className="flex justify-between items-center">
                 <p className="text-white/70 text-sm">Current Gold Price</p>
                 <p className="text-white font-medium">${currentPrice.toFixed(2)}</p>
@@ -421,10 +421,10 @@ export function TradingForm({
             </div>
         
             {/* Position summary */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3">
               <h4 className="text-sm font-medium text-white mb-2">Position Summary</h4>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div>
                   <p className="text-xs text-white/50">Position Size</p>
                   <p className="text-sm font-medium text-white">${positionSize.toFixed(2)}</p>
@@ -519,7 +519,7 @@ export function TradingForm({
               {!stopLoss && (
                 <div className="mt-2">
                   <p className="text-xs text-white/70">Suggested stop loss:</p>
-                  <div className="flex gap-2 mt-1">
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {[5, 10, 15].map(percent => {
                       const price = direction === "long"
                         ? currentPrice * (1 - percent / 100)
@@ -589,7 +589,7 @@ export function TradingForm({
               {!takeProfit && (
                 <div className="mt-2">
                   <p className="text-xs text-white/70">Suggested take profit:</p>
-                  <div className="flex gap-2 mt-1">
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {[5, 10, 20].map(percent => {
                       const price = direction === "long"
                         ? currentPrice * (1 + percent / 100)
@@ -611,7 +611,7 @@ export function TradingForm({
             </div>
             
             {/* Position summary reminder */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3">
               <h4 className="text-sm font-medium text-white mb-2">Position Summary</h4>
               
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -661,7 +661,7 @@ export function TradingForm({
         )}
         
         {/* Potential profit/loss */}
-        <div className="grid grid-cols-2 gap-3 bg-white/5 rounded-lg p-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 bg-white/5 rounded-lg p-2 sm:p-3">
           <div>
             <p className="text-xs text-white/70">Potential Profit (10% move)</p>
             <p className="text-sm font-medium text-green-400">
@@ -680,7 +680,7 @@ export function TradingForm({
         {/* Submit button */}
         <button
           type="submit"
-          className={`w-full py-3 rounded-lg font-medium ${
+          className={`w-full py-2.5 sm:py-3 rounded-lg font-medium ${
             direction === "long"
               ? "bg-green-500 hover:bg-green-600 text-white"
               : "bg-red-500 hover:bg-red-600 text-white"

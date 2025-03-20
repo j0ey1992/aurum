@@ -304,19 +304,19 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
           <span className="text-white">AurumTrust: </span>
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 to-yellow-500">
             Deflationary by Design
           </span>
         </h2>
-        <p className="mt-4 text-lg text-white/70 max-w-2xl">
+        <p className="mt-3 sm:mt-4 text-base sm:text-lg text-white/70 max-w-2xl">
           AurumTrust is an experimental token featuring a buy-back and burn mechanism funded by gold trading profits, creating increasing scarcity over time.
         </p>
       </motion.div>
 
       {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left column - Burn mechanism */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -325,10 +325,10 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
           className="lg:col-span-2 space-y-6"
         >
           {/* Burn mechanism card */}
-          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Flame size={20} className="text-red-500" />
-              <h3 className="text-xl font-bold text-white">Burn Mechanism</h3>
+          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <Flame size={18} className="sm:text-[20px] text-red-500" />
+              <h3 className="text-lg sm:text-xl font-bold text-white">Burn Mechanism</h3>
             </div>
             
             <div className="space-y-4">
@@ -336,29 +336,29 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                 15% of weekly gold trading profits will be used to buy back and burn tokens, permanently removing them from circulation and increasing scarcity.
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="bg-[#2a2a2a] rounded-xl p-4 border border-white/10">
-                  <div className="text-amber-400 text-sm font-medium mb-1">Profit Allocation</div>
-                  <div className="text-2xl font-bold text-white">15%</div>
-                  <div className="text-xs text-white/50 mt-1">of weekly gold trading</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-3 sm:mt-4">
+                <div className="bg-[#2a2a2a] rounded-xl p-3 sm:p-4 border border-white/10">
+                  <div className="text-amber-400 text-xs sm:text-sm font-medium mb-1">Profit Allocation</div>
+                  <div className="text-xl sm:text-2xl font-bold text-white">15%</div>
+                  <div className="text-[10px] sm:text-xs text-white/50 mt-1">of weekly gold trading</div>
                 </div>
                 
-                <div className="bg-[#2a2a2a] rounded-xl p-4 border border-white/10">
-                  <div className="text-amber-400 text-sm font-medium mb-1">First Burn Date</div>
-                  <div className="text-2xl font-bold text-white">{nextBurnDate}</div>
-                  <div className="text-xs text-white/50 mt-1">or earlier if profits allow</div>
+                <div className="bg-[#2a2a2a] rounded-xl p-3 sm:p-4 border border-white/10">
+                  <div className="text-amber-400 text-xs sm:text-sm font-medium mb-1">First Burn Date</div>
+                  <div className="text-xl sm:text-2xl font-bold text-white">{nextBurnDate}</div>
+                  <div className="text-[10px] sm:text-xs text-white/50 mt-1">or earlier if profits allow</div>
                 </div>
                 
-                <div className="bg-[#2a2a2a] rounded-xl p-4 border border-white/10">
-                  <div className="text-amber-400 text-sm font-medium mb-1">Days Until Burn</div>
-                  <div className="text-2xl font-bold text-white">{daysUntilBurn}</div>
-                  <div className="text-xs text-white/50 mt-1">countdown to first burn</div>
+                <div className="bg-[#2a2a2a] rounded-xl p-3 sm:p-4 border border-white/10">
+                  <div className="text-amber-400 text-xs sm:text-sm font-medium mb-1">Days Until Burn</div>
+                  <div className="text-xl sm:text-2xl font-bold text-white">{daysUntilBurn}</div>
+                  <div className="text-[10px] sm:text-xs text-white/50 mt-1">countdown to first burn</div>
                 </div>
               </div>
               
-              <div className="mt-6">
-                <h4 className="text-white font-medium mb-3">Recent Burn Events</h4>
-                <div className="h-[200px]">
+              <div className="mt-4 sm:mt-6">
+                <h4 className="text-white font-medium text-sm sm:text-base mb-2 sm:mb-3">Recent Burn Events</h4>
+                <div className="h-[180px] sm:h-[200px]">
                   {isLoading || burnEvents.length === 0 ? (
                     <div className="flex justify-center items-center h-full">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-400"></div>
@@ -416,13 +416,13 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
           </div>
           
           {/* Token Allocation card - moved from right column */}
-          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 size={20} className="text-blue-500" />
-              <h3 className="text-xl font-bold text-white">Token Allocation</h3>
+          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <BarChart3 size={18} className="sm:text-[20px] text-blue-500" />
+              <h3 className="text-lg sm:text-xl font-bold text-white">Token Allocation</h3>
             </div>
             
-            <div className="h-[150px] mb-4">
+            <div className="h-[130px] sm:h-[150px] mb-3 sm:mb-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -476,16 +476,16 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
           className="space-y-6"
         >
           {/* Burn wallet card */}
-          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-red-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-red-500/20 rounded-2xl p-4 sm:p-6 shadow-xl relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-500/10 rounded-full blur-2xl"></div>
             
-            <div className="flex items-center gap-2 mb-4">
-              <Flame size={20} className="text-red-500" />
-              <h3 className="text-xl font-bold text-white">Burn Wallet</h3>
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <Flame size={18} className="sm:text-[20px] text-red-500" />
+              <h3 className="text-lg sm:text-xl font-bold text-white">Burn Wallet</h3>
             </div>
             
             <div className="space-y-4 relative z-10">
-              <div className="bg-[#2a2a2a] rounded-xl p-4 border border-red-500/20">
+              <div className="bg-[#2a2a2a] rounded-xl p-3 sm:p-4 border border-red-500/20">
                 <div className="text-xs text-white/50 mb-1">Address</div>
                 <div className="flex items-center gap-2">
                   <div className="text-sm font-mono text-white break-all">
@@ -502,8 +502,8 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                 </div>
               </div>
               
-              <div className="bg-[#2a2a2a] rounded-xl p-4 border border-red-500/20">
-                <div className="text-red-500 text-sm font-medium mb-1">Burned Tokens</div>
+              <div className="bg-[#2a2a2a] rounded-xl p-3 sm:p-4 border border-red-500/20">
+                <div className="text-red-500 text-xs sm:text-sm font-medium mb-1">Burned Tokens</div>
                 {isLoading ? (
                   <div className="flex flex-col space-y-2">
                     <div className="h-8 bg-white/5 rounded animate-pulse"></div>
@@ -512,8 +512,8 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                   </div>
                 ) : (
                   <>
-                    <div className="text-3xl font-bold text-white">{formatNumber(burnedTokens)} AUT</div>
-                    <div className="text-xs text-white/50 mt-1">{calculatePercentage(burnedTokens)}% of total supply</div>
+                    <div className="text-xl sm:text-3xl font-bold text-white">{formatNumber(burnedTokens)} AUT</div>
+                    <div className="text-[10px] sm:text-xs text-white/50 mt-1">{calculatePercentage(burnedTokens)}% of total supply</div>
                     
                     <div className="w-full h-2 bg-[#3a3a3a] rounded-full mt-3 overflow-hidden">
                       <div 
@@ -525,7 +525,7 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                 )}
               </div>
               
-              <div className="h-[200px]">
+              <div className="h-[180px] sm:h-[200px]">
                 {isLoading ? (
                   <div className="flex justify-center items-center h-full">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-400"></div>
@@ -557,10 +557,10 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
           </div>
           
           {/* Token info card */}
-          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Info size={20} className="text-amber-400" />
-              <h3 className="text-xl font-bold text-white">Token Info</h3>
+          <div className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <Info size={18} className="sm:text-[20px] text-amber-400" />
+              <h3 className="text-lg sm:text-xl font-bold text-white">Token Info</h3>
             </div>
             
             <div className="space-y-3">

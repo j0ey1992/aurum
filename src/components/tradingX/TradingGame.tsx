@@ -371,13 +371,13 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-6 shadow-xl"
+        className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 sm:p-6 shadow-xl"
       >
         {/* Price header */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0 mb-4 sm:mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold text-white">Gold Price</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Gold Price</h2>
               {isLoading ? (
                 <RefreshCw size={16} className="text-white/50 animate-spin" />
               ) : null}
@@ -393,7 +393,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
             </div>
             
             <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-3xl font-bold text-white">${currentPrice.toFixed(2)}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white">${currentPrice.toFixed(2)}</p>
               <div className={`flex items-center ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                 <span className="text-sm font-medium ml-1">
@@ -408,7 +408,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
           </div>
           
           {/* Timeframe selector */}
-          <div className="flex bg-[#2a2a2a] rounded-lg p-1">
+          <div className="flex bg-[#2a2a2a] rounded-lg p-1 overflow-x-auto sm:overflow-visible">
             {(["1D", "1W", "1M", "3M", "1Y"] as const).map((time) => (
               <button
                 key={time}
@@ -426,7 +426,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         </div>
         
         {/* Chart */}
-        <div className="h-[300px] w-full">
+        <div className="h-[250px] sm:h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={goldData}
@@ -492,11 +492,11 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         </AnimatePresence>
 
         {/* Action buttons */}
-        <div className="flex justify-between items-center mt-6 border-t border-white/5 pt-4">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 sm:mt-6 border-t border-white/5 pt-4">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowTradingForm(true)}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-300 to-yellow-400 text-black font-medium hover:shadow-lg hover:shadow-amber-500/20 transition-all"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-300 to-yellow-400 text-black font-medium hover:shadow-lg hover:shadow-amber-500/20 transition-all w-full sm:w-auto"
               disabled={!isWalletConnected}
             >
               Trade Gold
@@ -505,14 +505,14 @@ export function TradingGame({ className = "" }: TradingGameProps) {
             {!isWalletConnected ? (
               <button
                 onClick={connectWallet}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all"
+                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all w-full sm:w-auto"
               >
                 Connect Wallet
               </button>
             ) : (
               <button
                 onClick={disconnectWallet}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all"
+                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all w-full sm:w-auto"
               >
                 Disconnect
               </button>
@@ -545,14 +545,14 @@ export function TradingGame({ className = "" }: TradingGameProps) {
       </motion.div>
       
       {/* Educational banner */}
-      <div className="bg-amber-400/10 border border-amber-400/30 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-amber-400/10 border border-amber-400/30 rounded-xl p-4 flex flex-col sm:flex-row items-start gap-3">
         <Info size={20} className="text-amber-400 flex-shrink-0 mt-0.5" />
         <div>
           <h3 className="text-white font-medium mb-1">Understanding Perpetual Gold Trading</h3>
           <p className="text-white/70 text-sm">
             Trade gold with leverage without expiry dates. Click on the terms below to learn more:
           </p>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2 w-full">
             <button 
               onClick={() => setShowTooltip('perpetual')}
               className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
@@ -588,7 +588,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
       </div>
 
       {/* Trading interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Trading stats */}
         <TradingStats
           stats={tradingStats}
@@ -598,7 +598,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         />
         
         {/* Position list */}
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2">
           <PositionList
             positions={positions}
             currentPrice={currentPrice}
@@ -615,14 +615,14 @@ export function TradingGame({ className = "" }: TradingGameProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-3 sm:p-4 overflow-y-auto"
             onClick={() => setShowTradingForm(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="max-w-md w-full mx-auto my-8 overflow-visible"
+              className="max-w-md w-full mx-auto my-12 sm:my-16 overflow-visible"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-end mb-2">
@@ -651,14 +651,14 @@ export function TradingGame({ className = "" }: TradingGameProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto"
             onClick={() => setShowPositionManager(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-5 max-w-md w-full mx-auto my-8"
+              className="bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-5 max-w-md w-full mx-auto my-4 sm:my-8"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
