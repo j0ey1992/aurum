@@ -4,12 +4,13 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Leaderboard } from "@/components/leaderboard";
 import { TradingGame } from "@/components/tradingX/TradingGame";
+import { AurumTrust } from "@/components/AurumTrust";
 
 export function Hero() {
   return (
     <section className="w-full py-16 md:py-24 lg:py-32 overflow-hidden">
       <div className="container mx-auto px-4">
-        <div className="space-y-8">
+        <div className="space-y-16">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -29,6 +30,9 @@ export function Hero() {
           
           {/* Trading Game */}
           <TradingGame />
+          
+          {/* AurumTrust Token Information */}
+          <AurumTrust />
           
           {/* Leaderboard */}
           <div className="mt-16">
