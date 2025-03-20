@@ -109,7 +109,7 @@ export function PositionCard({
           <div>
             <div className="flex items-center gap-1">
               <p className="text-xs sm:text-sm font-medium text-white">
-                {direction === "long" ? "Long" : "Short"} Gold
+                {direction === "long" ? "Long" : "Short"} AUT
               </p>
               <span className="text-xs text-white/50">#{id.slice(-4)}</span>
             </div>

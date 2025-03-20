@@ -86,40 +86,22 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
       icon: <Zap size={16} className="mr-1.5" />
     },
     { 
-      label: "Markets", 
-      href: "/markets", 
-      active: activeTab === "Markets",
-      icon: <ExternalLink size={16} className="mr-1.5" />,
-      children: [
-        { 
-          title: "Trending Markets", 
-          description: "See what's hot in the crypto world",
-          href: "/markets/trending",
-          icon: <Zap size={16} />
-        },
-        { 
-          title: "Market Overview", 
-          description: "Get a bird's eye view of all markets",
-          href: "/markets/overview",
-          icon: <ExternalLink size={16} />
-        },
-        { 
-          title: "Watchlist", 
-          description: "Track your favorite assets",
-          href: "/markets/watchlist",
-          icon: <Shield size={16} />
-        },
-      ]
+      label: "Transparency", 
+      href: "/transparency", 
+      active: activeTab === "Transparency",
+      icon: <Shield size={16} className="mr-1.5" />
+    },
+    { 
+      label: "Roadmap", 
+      href: "/roadmap", 
+      active: activeTab === "Roadmap",
+      icon: <ExternalLink size={16} className="mr-1.5" />
     },
     { 
       label: "Swap", 
-      href: "/swap", 
-      active: activeTab === "Swap" 
-    },
-    { 
-      label: "Stake", 
-      href: "/stake", 
-      active: activeTab === "Stake" 
+      href: "https://wolfswap.app", 
+      active: activeTab === "Swap",
+      icon: <ExternalLink size={16} className="mr-1.5" />
     },
   ];
 

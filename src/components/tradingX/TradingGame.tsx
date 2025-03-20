@@ -1,34 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { TrendingUp, TrendingDown, RefreshCw, Clock, X, AlertCircle, Info, HelpCircle } from "lucide-react";
-import { goldPriceService, GoldPriceData, PriceResult } from "@/services/goldPriceService";
-import { tokenService } from "@/services/tokenService";
-import { tradingService } from "../../services/tradingService";
 import { ethers } from "ethers";
 import { useAppKit, useAppKitAccount, useDisconnect, useAppKitNetwork } from "@reown/appkit/react";
+import { autPriceService, AUTPriceData, PriceResult } from "@/services/autPriceService";
+import { tokenService } from "@/services/tokenService";
+import { tradingService } from "../../services/tradingService";
 import { Position, OrderParams, TradingStats as TradingStatsType } from "./types";
-import { TradingForm } from "./TradingForm";
-import { PositionList } from "./PositionList";
+
+// Import modular components
+import { PriceChart } from "./PriceChart";
+import { EducationalTooltip } from "./EducationalTooltip";
+import { ActionButtons } from "./ActionButtons";
+import { EducationalBanner } from "./EducationalBanner";
+import { TradingFormModal } from "./TradingFormModal";
+import { PositionManagerModal } from "./PositionManagerModal";
 import { TradingStats } from "./TradingStats";
+import { PositionList } from "./PositionList";
 
 interface TradingGameProps {
   className?: string;
 }
 
 export function TradingGame({ className = "" }: TradingGameProps) {
-  // Gold price data
-  const [goldData, setGoldData] = useState<GoldPriceData[]>([]);
+  // AUT price data
+  const [autData, setAUTData] = useState<AUTPriceData[]>([]);
   const [timeframe, setTimeframe] = useState<"1D" | "1W" | "1M" | "3M" | "1Y">("1M");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPrice, setCurrentPrice] = useState(0);
@@ -55,6 +51,11 @@ export function TradingGame({ className = "" }: TradingGameProps) {
     winRate: 0
   });
   
+  // Protocol statistics
+  const [insuranceFundSize, setInsuranceFundSize] = useState(0);
+  const [burnedTokens, setBurnedTokens] = useState(0);
+  const [openInterest, setOpenInterest] = useState({ long: 0, short: 0 });
+  
   // Wallet connection
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
@@ -75,23 +76,23 @@ export function TradingGame({ className = "" }: TradingGameProps) {
     perpetual: "Perpetual contracts are derivatives that let you trade with leverage without an expiry date. They use funding rates to keep prices aligned with the underlying asset."
   };
   
-  // Fetch gold price data
-  const fetchGoldData = async (days: number) => {
+  // Fetch AUT price data
+  const fetchAUTData = async (days: number) => {
     setIsLoading(true);
     
     try {
       // Check API status first
-      const apiStatus = await goldPriceService.checkApiStatus();
-      console.log("Gold price API status:", apiStatus);
+      const apiStatus = await autPriceService.checkApiStatus();
+      console.log("AUT price API status:", apiStatus);
       
-      // Get historical gold price data
-      const historicalResult = await goldPriceService.getHistoricalData(days);
-      setGoldData(historicalResult.data);
+      // Get historical AUT price data
+      const historicalResult = await autPriceService.getHistoricalData(days);
+      setAUTData(historicalResult.data);
       setIsRealData(historicalResult.isRealData);
       setDataSource(historicalResult.dataSource);
       
-      // Get current gold price
-      const priceResult: PriceResult = await goldPriceService.getCurrentPrice();
+      // Get current AUT price
+      const priceResult: PriceResult = await autPriceService.getCurrentPrice();
       
       setCurrentPrice(priceResult.currentPrice);
       setPriceChange(parseFloat(priceResult.priceChange.toFixed(2)));
@@ -107,11 +108,11 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         setIsRealData(false);
       }
     } catch (error) {
-      console.error("Error fetching gold price data:", error);
+      console.error("Error fetching AUT price data:", error);
       
       // Fallback to mock data if all APIs fail
-      const mockData = goldPriceService.generateMockData(days);
-      setGoldData(mockData);
+      const mockData = autPriceService.generateMockData(days);
+      setAUTData(mockData);
       setIsRealData(false);
       setDataSource("Fallback Data");
       
@@ -155,7 +156,7 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         break;
     }
     
-    fetchGoldData(days);
+    fetchAUTData(days);
   }, [timeframe]);
   
   // Update local state based on AppKit state
@@ -197,6 +198,41 @@ export function TradingGame({ className = "" }: TradingGameProps) {
               console.error("TradingGame - Error fetching AUT balance:", error);
               setAutBalance("0");
             }
+            
+            // Get funding rate and protocol statistics
+            try {
+              const rate = await tradingService.getCurrentFundingRate(provider);
+              setFundingRate(rate);
+              
+              // Set next funding time (8 hours from now)
+              const nextTime = new Date();
+              nextTime.setHours(nextTime.getHours() + 8);
+              setNextFundingTime(nextTime);
+              
+              // Get protocol statistics - these methods need to be implemented in tradingService
+              try {
+                // Mock values for now - these should be replaced with actual API calls
+                setInsuranceFundSize(50000);
+                setBurnedTokens(25000);
+                setOpenInterest({ long: 150000, short: 120000 });
+              } catch (error) {
+                console.error("Error getting protocol statistics:", error);
+              }
+            } catch (error) {
+              console.error("Error getting funding rate:", error);
+            }
+            
+            // Get open positions
+            try {
+              const openPositions = await tradingService.getOpenPositions(provider, appKitAddress);
+              setPositions(openPositions);
+              
+              // Get trading stats
+              const stats = await tradingService.getTradingStats(provider);
+              setTradingStats(stats);
+            } catch (error) {
+              console.error("Error getting open positions:", error);
+            }
           }
         } catch (error) {
           console.error("Error getting token balance:", error);
@@ -227,69 +263,47 @@ export function TradingGame({ className = "" }: TradingGameProps) {
   
   // Update positions and check for liquidations/TP/SL
   useEffect(() => {
-    if (positions.length === 0 || currentPrice === 0) return;
+    if (positions.length === 0 || currentPrice === 0 || !provider) return;
     
-    const openPositions = positions.filter(pos => pos.status === "open");
-    if (openPositions.length === 0) return;
-    
-    const updatedPositions = [...positions];
-    let positionsUpdated = false;
-    
-    openPositions.forEach(position => {
-      const index = updatedPositions.findIndex(p => p.id === position.id);
-      if (index === -1) return;
+    const checkPositions = async () => {
+      const openPositions = positions.filter(pos => pos.status === "open");
+      if (openPositions.length === 0) return;
       
-      // Check for liquidation
-      if (tradingService.shouldLiquidate(position, currentPrice)) {
-        updatedPositions[index] = tradingService.closePosition(
-          position,
-          position.liquidationPrice,
-          "liquidation"
-        );
-        positionsUpdated = true;
-        return;
+      let positionsUpdated = false;
+      
+      for (const position of openPositions) {
+        // Check for take profit / stop loss
+        const { triggered, type } = tradingService.checkTakeProfitStopLoss(position, currentPrice);
+        if (triggered && type) {
+          try {
+            // Close position
+            await tradingService.closePosition(provider, position.id);
+            positionsUpdated = true;
+          } catch (error) {
+            console.error("Error closing position:", error);
+          }
+        }
       }
       
-      // Check for take profit / stop loss
-      const { triggered, type } = tradingService.checkTakeProfitStopLoss(position, currentPrice);
-      if (triggered && type) {
-        updatedPositions[index] = tradingService.closePosition(
-          position,
-          currentPrice,
-          type
-        );
-        positionsUpdated = true;
+      if (positionsUpdated) {
+        // Refresh positions
+        const address = await provider.getSigner().then(signer => signer.getAddress());
+        const updatedPositions = await tradingService.getOpenPositions(provider, address);
+        setPositions(updatedPositions);
+        
+        // Update trading stats
+        const stats = await tradingService.getTradingStats(provider);
+        setTradingStats(stats);
       }
-    });
+    };
     
-    if (positionsUpdated) {
-      setPositions(updatedPositions);
-      
-      // Update trading stats
-      const stats = tradingService.calculateStats(updatedPositions);
-      setTradingStats(stats);
-    }
-  }, [positions, currentPrice]);
+    checkPositions();
+  }, [positions, currentPrice, provider]);
   
   // Format date for chart tooltip
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     return new Date(dateStr).toLocaleDateString(undefined, options);
-  };
-  
-  // Custom tooltip for the chart
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[#1a1a1a] p-3 border border-white/10 rounded-lg shadow-lg">
-          <p className="text-white/70 text-xs">{formatDate(label)}</p>
-          <p className="text-white font-medium">
-            ${payload[0].value.toFixed(2)}
-          </p>
-        </div>
-      );
-    }
-    return null;
   };
   
   // Handle opening a new position
@@ -306,50 +320,54 @@ export function TradingGame({ className = "" }: TradingGameProps) {
         return;
       }
       
-      // In a real implementation, this would call the smart contract
-      // For now, we'll simulate the trade
-      console.log(`Opening position: ${params.direction} with ${params.margin} AUT at ${params.leverage}x leverage`);
+      // Place trade using the trading service
+      await tradingService.placeTrade(provider, params);
       
-      // Create position
-      const position = tradingService.createPosition(params, currentPrice);
-      
-      // Update positions
-      setPositions([position, ...positions]);
+      // Refresh positions
+      const address = await provider.getSigner().then(signer => signer.getAddress());
+      const updatedPositions = await tradingService.getOpenPositions(provider, address);
+      setPositions(updatedPositions);
       
       // Update balance
-      const newBalance = parseFloat(autBalance) - params.margin;
-      setAutBalance(newBalance.toString());
+      const balance = await tokenService.getBalance(provider, address);
+      setAutBalance(balance);
+      
+      // Update trading stats
+      const stats = await tradingService.getTradingStats(provider);
+      setTradingStats(stats);
       
       // Close trading form
       setShowTradingForm(false);
     } catch (error) {
       console.error("Error opening position:", error);
+      alert("Error opening position. Please try again.");
     }
   };
   
   // Handle closing a position
-  const handleClosePosition = (positionId: string) => {
-    const position = positions.find(p => p.id === positionId);
-    if (!position || position.status !== "open") return;
+  const handleClosePosition = async (positionId: string) => {
+    if (!provider) return;
     
-    // Close position
-    const closedPosition = tradingService.closePosition(position, currentPrice);
-    
-    // Update positions
-    const updatedPositions = positions.map(p => 
-      p.id === positionId ? closedPosition : p
-    );
-    
-    setPositions(updatedPositions);
-    
-    // Update balance
-    const pnl = closedPosition.pnl || 0;
-    const newBalance = parseFloat(autBalance) + position.margin + pnl;
-    setAutBalance(newBalance.toString());
-    
-    // Update trading stats
-    const stats = tradingService.calculateStats(updatedPositions);
-    setTradingStats(stats);
+    try {
+      // Close position
+      await tradingService.closePosition(provider, positionId);
+      
+      // Refresh positions
+      const address = await provider.getSigner().then(signer => signer.getAddress());
+      const updatedPositions = await tradingService.getOpenPositions(provider, address);
+      setPositions(updatedPositions);
+      
+      // Update balance
+      const balance = await tokenService.getBalance(provider, address);
+      setAutBalance(balance);
+      
+      // Update trading stats
+      const stats = await tradingService.getTradingStats(provider);
+      setTradingStats(stats);
+    } catch (error) {
+      console.error("Error closing position:", error);
+      alert("Error closing position. Please try again.");
+    }
   };
   
   // Handle managing a position
@@ -361,231 +379,43 @@ export function TradingGame({ className = "" }: TradingGameProps) {
     setShowPositionManager(true);
   };
   
-  // Get open positions
-  const openPositions = positions.filter(p => p.status === "open");
-  
   return (
     <div className={`space-y-8 ${className}`}>
-      {/* Gold price chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-[#1a1a1a]/50 backdrop-blur-sm border border-white/5 rounded-2xl p-4 sm:p-6 shadow-xl"
-      >
-        {/* Price header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0 mb-4 sm:mb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Gold Price</h2>
-              {isLoading ? (
-                <RefreshCw size={16} className="text-white/50 animate-spin" />
-              ) : null}
-              
-              {/* Data source indicator */}
-              <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                isRealData 
-                  ? 'bg-green-400/20 text-green-400' 
-                  : 'bg-amber-400/20 text-amber-400'
-              }`}>
-                {isRealData ? 'Live Data' : 'Simulated Data'}
-              </div>
-            </div>
-            
-            <div className="flex items-baseline gap-2 mt-1">
-              <p className="text-2xl sm:text-3xl font-bold text-white">${currentPrice.toFixed(2)}</p>
-              <div className={`flex items-center ${priceChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                <span className="text-sm font-medium ml-1">
-                  {priceChange >= 0 ? '+' : ''}{priceChange} ({priceChangePercent >= 0 ? '+' : ''}{priceChangePercent}%)
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-xs text-white/50 mt-1">
-              Source: {dataSource}
-            </div>
-          </div>
-          
-          {/* Timeframe selector */}
-          <div className="flex bg-[#2a2a2a] rounded-lg p-1 overflow-x-auto sm:overflow-visible">
-            {(["1D", "1W", "1M", "3M", "1Y"] as const).map((time) => (
-              <button
-                key={time}
-                onClick={() => setTimeframe(time)}
-                className={`px-3 py-1 text-xs font-medium rounded-md ${
-                  timeframe === time
-                    ? 'bg-amber-400 text-black'
-                    : 'text-white/70 hover:text-white'
-                }`}
-              >
-                {time}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Chart */}
-        <div className="h-[250px] sm:h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={goldData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fill: '#999', fontSize: 12 }}
-                tickFormatter={formatDate}
-                axisLine={{ stroke: '#333' }}
-                tickLine={{ stroke: '#333' }}
-              />
-              <YAxis 
-                domain={['auto', 'auto']}
-                tick={{ fill: '#999', fontSize: 12 }}
-                axisLine={{ stroke: '#333' }}
-                tickLine={{ stroke: '#333' }}
-                tickFormatter={(value) => `$${value}`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area 
-                type="monotone" 
-                dataKey="price" 
-                stroke="#F59E0B" 
-                strokeWidth={2}
-                fill="url(#goldGradient)" 
-                activeDot={{ r: 6, fill: '#F59E0B', stroke: '#fff' }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        
-        {/* Educational tooltip */}
-        <AnimatePresence>
-          {showTooltip && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#2a2a2a] p-3 rounded-lg shadow-lg border border-white/10 max-w-md z-50"
-            >
-              <div className="flex gap-2">
-                <Info size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-white text-sm">{tooltips[showTooltip as keyof typeof tooltips]}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowTooltip(null)}
-                className="absolute top-2 right-2 text-white/50 hover:text-white"
-              >
-                <X size={14} />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 sm:mt-6 border-t border-white/5 pt-4">
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setShowTradingForm(true)}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-300 to-yellow-400 text-black font-medium hover:shadow-lg hover:shadow-amber-500/20 transition-all w-full sm:w-auto"
-              disabled={!isWalletConnected}
-            >
-              Trade Gold
-            </button>
-            
-            {!isWalletConnected ? (
-              <button
-                onClick={connectWallet}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all w-full sm:w-auto"
-              >
-                Connect Wallet
-              </button>
-            ) : (
-              <button
-                onClick={disconnectWallet}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all w-full sm:w-auto"
-              >
-                Disconnect
-              </button>
-            )}
-            
-            {/* Help button */}
-            <button
-              onClick={() => setShowTooltip(showTooltip ? null : 'perpetual')}
-              className="p-2 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white transition-all"
-              aria-label="Help"
-            >
-              <HelpCircle size={16} />
-            </button>
-          </div>
-          
-          <div className="text-white/70 text-sm">
-            {isWalletConnected ? (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                <span>Connected: {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                <span>Wallet not connected</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
+      {/* AUT price chart */}
+      <PriceChart
+        autData={autData}
+        timeframe={timeframe}
+        setTimeframe={setTimeframe}
+        isLoading={isLoading}
+        currentPrice={currentPrice}
+        priceChange={priceChange}
+        priceChangePercent={priceChangePercent}
+        isRealData={isRealData}
+        dataSource={dataSource}
+        formatDate={formatDate}
+      />
+      
+      {/* Action buttons */}
+      <ActionButtons
+        isWalletConnected={isWalletConnected}
+        walletAddress={walletAddress}
+        onTrade={() => setShowTradingForm(true)}
+        onConnect={connectWallet}
+        onDisconnect={disconnectWallet}
+        onHelp={() => setShowTooltip(showTooltip ? null : 'perpetual')}
+      />
+      
+      {/* Educational tooltip */}
+      <EducationalTooltip
+        showTooltip={showTooltip}
+        setShowTooltip={setShowTooltip}
+        tooltips={tooltips}
+      />
       
       {/* Educational banner */}
-      <div className="bg-amber-400/10 border border-amber-400/30 rounded-xl p-4 flex flex-col sm:flex-row items-start gap-3">
-        <Info size={20} className="text-amber-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <h3 className="text-white font-medium mb-1">Understanding Perpetual Gold Trading</h3>
-          <p className="text-white/70 text-sm">
-            Trade gold with leverage without expiry dates. Click on the terms below to learn more:
-          </p>
-          <div className="flex flex-wrap gap-2 mt-2 w-full">
-            <button 
-              onClick={() => setShowTooltip('perpetual')}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
-            >
-              Perpetual Contracts
-            </button>
-            <button 
-              onClick={() => setShowTooltip('leverage')}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
-            >
-              Leverage
-            </button>
-            <button 
-              onClick={() => setShowTooltip('liquidation')}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
-            >
-              Liquidation
-            </button>
-            <button 
-              onClick={() => setShowTooltip('funding')}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
-            >
-              Funding Rate
-            </button>
-            <button 
-              onClick={() => setShowTooltip('margin')}
-              className="px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs text-white"
-            >
-              Margin
-            </button>
-          </div>
-        </div>
-      </div>
+      <EducationalBanner
+        onTermClick={(term) => setShowTooltip(term)}
+      />
 
       {/* Trading interface */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -595,6 +425,9 @@ export function TradingGame({ className = "" }: TradingGameProps) {
           autBalance={autBalance}
           fundingRate={fundingRate}
           nextFundingTime={nextFundingTime}
+          insuranceFundSize={insuranceFundSize}
+          burnedTokens={burnedTokens}
+          openInterest={openInterest}
         />
         
         {/* Position list */}
@@ -609,144 +442,20 @@ export function TradingGame({ className = "" }: TradingGameProps) {
       </div>
       
       {/* Trading form modal */}
-      <AnimatePresence>
-        {showTradingForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-50 p-3 sm:p-4 overflow-y-auto"
-            onClick={() => setShowTradingForm(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="max-w-md w-full mx-auto my-12 sm:my-16 overflow-visible"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => setShowTradingForm(false)}
-                  className="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              
-              <TradingForm
-                currentPrice={currentPrice}
-                maxMargin={parseFloat(autBalance)}
-                onSubmit={handleOpenPosition}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <TradingFormModal
+        showTradingForm={showTradingForm}
+        setShowTradingForm={setShowTradingForm}
+        currentPrice={currentPrice}
+        maxMargin={parseFloat(autBalance)}
+        onSubmit={handleOpenPosition}
+      />
       
       {/* Position manager modal */}
-      <AnimatePresence>
-        {showPositionManager && selectedPosition && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto"
-            onClick={() => setShowPositionManager(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-[#1a1a1a]/80 backdrop-blur-sm border border-white/10 rounded-xl p-4 sm:p-5 max-w-md w-full mx-auto my-4 sm:my-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-white">Manage Position</h3>
-                <button
-                  onClick={() => setShowPositionManager(false)}
-                  className="p-2 rounded-full bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              
-              {/* Position details */}
-              <div className="mb-6">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-white/50">Direction</p>
-                    <p className={`text-sm font-medium ${
-                      selectedPosition.direction === "long" ? "text-green-400" : "text-red-400"
-                    }`}>
-                      {selectedPosition.direction === "long" ? "Long" : "Short"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Leverage</p>
-                    <p className="text-sm font-medium text-white">{selectedPosition.leverage}x</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Entry Price</p>
-                    <p className="text-sm font-medium text-white">${selectedPosition.entryPrice.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Current Price</p>
-                    <p className="text-sm font-medium text-white">${currentPrice.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">Liquidation Price</p>
-                    <p className="text-sm font-medium text-red-400">${selectedPosition.liquidationPrice.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/50">PnL</p>
-                    <p className={`text-sm font-medium ${
-                      tradingService.calculatePnL(selectedPosition, currentPrice) >= 0
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}>
-                      {tradingService.calculatePnL(selectedPosition, currentPrice) >= 0 ? "+" : ""}
-                      ${tradingService.calculatePnL(selectedPosition, currentPrice).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Actions */}
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    handleClosePosition(selectedPosition.id);
-                    setShowPositionManager(false);
-                  }}
-                  className="w-full py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium"
-                >
-                  Close Position
-                </button>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setShowPositionManager(false)}
-                    className="py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium"
-                  >
-                    Cancel
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      // Add stop loss / take profit functionality here
-                      setShowPositionManager(false);
-                    }}
-                    className="py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium"
-                  >
-                    Update
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <PositionManagerModal
+        showPositionManager={showPositionManager}
+        setShowPositionManager={setShowPositionManager}
+        selectedPosition={selectedPosition}
+      />
     </div>
   );
 }

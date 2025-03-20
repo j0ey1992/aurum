@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Add Turbopack configuration
+  experimental: {
+    turbo: {
+      rules: {
+        // Add any specific Turbopack rules here if needed
+      }
+    }
+  },
+  // Configure static export for Netlify
+  output: 'export'
 };
 
 export default nextConfig;

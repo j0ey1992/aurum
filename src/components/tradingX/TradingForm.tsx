@@ -50,10 +50,10 @@ export function TradingForm({
   
   // Tooltip content
   const tooltips = {
-    direction: "Choose whether you think gold price will go up (long) or down (short).",
+    direction: "Choose whether you think AUT token price will go up (long) or down (short).",
     long: "Going long means you're betting the price will go up. You profit when the price rises above your entry price.",
     short: "Going short means you're betting the price will go down. You profit when the price falls below your entry price.",
-    leverage: "Leverage multiplies your buying power, but also your risk. 2x leverage means you control $200 worth of gold with $100.",
+    leverage: "Leverage multiplies your buying power, but also your risk. 2x leverage means you control $200 worth of AUT tokens with $100.",
     liquidation: "If the price moves against you enough to consume your margin, your position will be automatically closed (liquidated).",
     stopLoss: "A stop loss automatically closes your position when the price reaches a certain level, limiting your potential loss.",
     takeProfit: "A take profit automatically closes your position when the price reaches your target, securing your profit.",
@@ -297,16 +297,16 @@ export function TradingForm({
               
               <p className="text-xs text-white/50 mt-1">
                 {direction === "long" 
-                  ? "You profit when gold price goes up" 
-                  : "You profit when gold price goes down"}
+                  ? "You profit when AUT token price goes up" 
+                  : "You profit when AUT token price goes down"}
               </p>
             </div>
         
             {/* Price display */}
             <div className="bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3">
               <div className="flex justify-between items-center">
-                <p className="text-white/70 text-sm">Current Gold Price</p>
-                <p className="text-white font-medium">${currentPrice.toFixed(2)}</p>
+                <p className="text-white/70 text-sm">Current AUT Token Price</p>
+                <p className="text-white font-medium">${currentPrice.toFixed(4)}</p>
               </div>
               <div className="flex justify-between items-center mt-2">
                 <p className="text-white/70 text-sm">Order Type</p>
@@ -646,9 +646,9 @@ export function TradingForm({
                   <div>
                     <p className="text-white font-medium">Confirm your trade</p>
                     <p className="text-white/70 text-sm mt-1">
-                      You are about to {direction === "long" ? "long" : "short"} gold with {leverage}x leverage.
-                      {stopLoss ? ` Stop loss set at $${stopLoss.toFixed(2)}.` : ""}
-                      {takeProfit ? ` Take profit set at $${takeProfit.toFixed(2)}.` : ""}
+                      You are about to {direction === "long" ? "long" : "short"} AUT token with {leverage}x leverage.
+                      {stopLoss ? ` Stop loss set at $${stopLoss.toFixed(4)}.` : ""}
+                      {takeProfit ? ` Take profit set at $${takeProfit.toFixed(4)}.` : ""}
                     </p>
                     <p className="text-white/70 text-sm mt-2">
                       This will use {margin.toFixed(2)} AUT from your balance.
@@ -696,7 +696,7 @@ export function TradingForm({
                 <Check size={16} /> Confirm {direction === "long" ? "Long" : "Short"}
               </span>
             ) : (
-              `${direction === "long" ? "Long" : "Short"} Gold ${orderType === "market" ? "at Market Price" : "with Limit Order"}`
+              `${direction === "long" ? "Long" : "Short"} AUT Token ${orderType === "market" ? "at Market Price" : "with Limit Order"}`
             )
           )}
         </button>

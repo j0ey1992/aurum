@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BarChart2, TrendingUp, Award, AlertTriangle, DollarSign } from "lucide-react";
+import { BarChart2, TrendingUp, Award, AlertTriangle, DollarSign, Flame, Shield, BarChart } from "lucide-react";
 import { TradingStats as TradingStatsType } from "./types";
 
 interface TradingStatsProps {
@@ -11,6 +11,12 @@ interface TradingStatsProps {
   fundingRate: number;
   nextFundingTime: Date;
   className?: string;
+  insuranceFundSize?: number;
+  burnedTokens?: number;
+  openInterest?: {
+    long: number;
+    short: number;
+  };
 }
 
 export function TradingStats({
@@ -19,6 +25,9 @@ export function TradingStats({
   fundingRate,
   nextFundingTime,
   className = "",
+  insuranceFundSize = 0,
+  burnedTokens = 0,
+  openInterest = { long: 0, short: 0 },
 }: TradingStatsProps) {
   const {
     profit,
@@ -129,6 +138,50 @@ export function TradingStats({
           <p className="text-xs sm:text-sm font-medium text-red-400">
             -{totalLoss.toFixed(2)} AUT
           </p>
+        </div>
+      </div>
+      
+      {/* Protocol statistics */}
+      <div className="border-t border-white/10 pt-3 sm:pt-4 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <BarChart size={14} className="text-amber-400" />
+          <p className="text-xs sm:text-sm text-white font-medium">Protocol Statistics</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 sm:gap-y-3">
+          <div>
+            <p className="text-[10px] sm:text-xs text-white/50">Open Interest (Long)</p>
+            <p className="text-xs sm:text-sm font-medium text-green-400">
+              ${openInterest.long.toFixed(2)}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-[10px] sm:text-xs text-white/50">Open Interest (Short)</p>
+            <p className="text-xs sm:text-sm font-medium text-red-400">
+              ${openInterest.short.toFixed(2)}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-[10px] sm:text-xs text-white/50 flex items-center">
+              <Shield size={10} className="mr-1 text-amber-400" />
+              Insurance Fund
+            </p>
+            <p className="text-xs sm:text-sm font-medium text-white">
+              {insuranceFundSize.toFixed(2)} AUT
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-[10px] sm:text-xs text-white/50 flex items-center">
+              <Flame size={10} className="mr-1 text-amber-400" />
+              Burned Tokens
+            </p>
+            <p className="text-xs sm:text-sm font-medium text-white">
+              {burnedTokens.toFixed(2)} AUT
+            </p>
+          </div>
         </div>
       </div>
       

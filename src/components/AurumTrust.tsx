@@ -422,22 +422,34 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
               <h3 className="text-lg sm:text-xl font-bold text-white">Token Allocation</h3>
             </div>
             
-            <div className="h-[130px] sm:h-[150px] mb-3 sm:mb-4">
+            <div className="h-[200px] sm:h-[250px] mb-3 sm:mb-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={tokenAllocationData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={60}
+                    outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name}`}
+                    label={false}
                   >
                     {tokenAllocationData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip />
+                  <Legend 
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    payload={
+                      tokenAllocationData.map((entry, index) => ({
+                        value: `${entry.name}`,
+                        type: "square",
+                        color: entry.color,
+                      }))
+                    }
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -525,7 +537,7 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                 )}
               </div>
               
-              <div className="h-[180px] sm:h-[200px]">
+              <div className="h-[220px] sm:h-[250px]">
                 {isLoading ? (
                   <div className="flex justify-center items-center h-full">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-400"></div>
@@ -537,18 +549,29 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
                         data={supplyDistribution}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        innerRadius={70}
+                        outerRadius={100}
                         paddingAngle={5}
                         dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={false}
+                        label={false}
                       >
                         {supplyDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
                       <Tooltip />
+                      <Legend 
+                        layout="vertical"
+                        verticalAlign="middle"
+                        align="right"
+                        payload={
+                          supplyDistribution.map((entry, index) => ({
+                            value: `${entry.name} ${((entry.value / totalSupply) * 100).toFixed(0)}%`,
+                            type: "square",
+                            color: entry.color,
+                          }))
+                        }
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -595,17 +618,6 @@ export function AurumTrust({ className = "" }: AurumTrustProps) {
               <div className="flex justify-between items-center border-b border-white/10 pb-2">
                 <div className="text-white/70">Contract</div>
                 <div className="flex items-center gap-1">
-                  <span className="text-white font-medium text-sm">
-                    {AUT_TOKEN_ADDRESS.slice(0, 6)}...{AUT_TOKEN_ADDRESS.slice(-4)}
-                  </span>
-                  <a 
-                    href={`https://cronoscan.com/token/${AUT_TOKEN_ADDRESS}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-400 hover:text-amber-300"
-                  >
-                    <ExternalLink size={14} />
-                  </a>
                 </div>
               </div>
               
