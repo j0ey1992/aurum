@@ -61,12 +61,33 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
     networkStatus: "Connected",
   };
 
-  // Mock notifications for demo purposes
-  const notifications = [
-    { id: 1, title: "Transaction Confirmed", description: "Your swap of 0.5 ETH completed", time: "2 min ago", read: false },
-    { id: 2, title: "Price Alert", description: "ETH is up 5% in the last hour", time: "15 min ago", read: true },
-    { id: 3, title: "Staking Rewards", description: "You earned 0.25 tokens from staking", time: "1 hour ago", read: true },
-  ];
+  // State for storing tweets
+  const [tweets, setTweets] = React.useState<any[]>([]);
+  const [isLoadingTweets, setIsLoadingTweets] = React.useState(false);
+
+  // Function to fetch tweets from AurumTrustCro
+  const fetchTweets = React.useCallback(async () => {
+    try {
+      setIsLoadingTweets(true);
+      // In a real implementation, this would call a backend API endpoint
+      // that handles Twitter/X API authentication and fetching
+      const response = await fetch('/api/tweets?username=AurumTrustCro&count=5');
+      const data = await response.json();
+      setTweets(data);
+    } catch (error) {
+      console.error('Error fetching tweets:', error);
+    } finally {
+      setIsLoadingTweets(false);
+    }
+  }, []);
+
+  // Fetch tweets on component mount
+  React.useEffect(() => {
+    fetchTweets();
+    // Refresh tweets every 5 minutes
+    const interval = setInterval(fetchTweets, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchTweets]);
 
   // Handle scroll events to change header appearance
   React.useEffect(() => {
@@ -193,30 +214,32 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
                         </NavigationMenuContent>
                       </>
                     ) : (
-                      <button
-                        onClick={() => setActiveTab(item.label)}
-                        className={cn(
-                          "relative px-5 py-2 text-sm font-medium rounded-full transition-colors",
-                          item.active 
-                            ? "text-black" 
-                            : "text-white/70 hover:text-white"
-                        )}
-                      >
-                        {item.active && (
-                          <motion.div
-                            layoutId="activeTabIndicator"
-                            className="absolute inset-0 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 rounded-full"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                          />
-                        )}
-                        <span className={`relative z-10 flex items-center ${item.active ? "text-black" : ""}`}>
-                          {item.icon}
-                          {item.label}
-                        </span>
-                      </button>
+                      <Link href={item.href}>
+                        <button
+                          onClick={() => setActiveTab(item.label)}
+                          className={cn(
+                            "relative px-5 py-2 text-sm font-medium rounded-full transition-colors",
+                            item.active 
+                              ? "text-black" 
+                              : "text-white/70 hover:text-white"
+                          )}
+                        >
+                          {item.active && (
+                            <motion.div
+                              layoutId="activeTabIndicator"
+                              className="absolute inset-0 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 rounded-full"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          )}
+                          <span className={`relative z-10 flex items-center ${item.active ? "text-black" : ""}`}>
+                            {item.icon}
+                            {item.label}
+                          </span>
+                        </button>
+                      </Link>
                     )}
                   </NavigationMenuItem>
                 ))}
@@ -248,26 +271,53 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
                   >
                     <div className="p-3 border-b border-white/5">
                       <div className="flex justify-between items-center">
-                        <h3 className="font-medium text-white">Notifications</h3>
-                        <button className="text-xs text-amber-300 hover:text-amber-200">Mark all as read</button>
+                        <h3 className="font-medium text-white">Latest Tweets</h3>
+                        <a 
+                          href="https://x.com/AurumTrustCro" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-amber-300 hover:text-amber-200 flex items-center"
+                        >
+                          <span>View on X</span>
+                          <ExternalLink size={10} className="ml-1" />
+                        </a>
                       </div>
                     </div>
                     <div className="max-h-[300px] overflow-y-auto">
-                      {notifications.map((notification) => (
-                        <div 
-                          key={notification.id}
-                          className={`p-3 border-b border-white/5 hover:bg-white/5 ${!notification.read ? 'bg-amber-500/5' : ''}`}
-                        >
-                          <div className="flex justify-between">
-                            <h4 className="font-medium text-sm text-white">{notification.title}</h4>
-                            <span className="text-xs text-white/50">{notification.time}</span>
-                          </div>
-                          <p className="text-xs text-white/70 mt-1">{notification.description}</p>
+                      {isLoadingTweets ? (
+                        <div className="p-4 text-center text-white/50 text-sm">
+                          Loading tweets...
                         </div>
-                      ))}
+                      ) : tweets && tweets.length > 0 ? (
+                        tweets.map((tweet) => (
+                          <div 
+                            key={tweet.id}
+                            className="p-3 border-b border-white/5 hover:bg-white/5"
+                          >
+                            <div className="flex justify-between">
+                              <h4 className="font-medium text-sm text-white">@AurumTrustCro</h4>
+                              <span className="text-xs text-white/50">{tweet.created_at}</span>
+                            </div>
+                            <p className="text-xs text-white/70 mt-1">{tweet.text}</p>
+                            <div className="flex items-center mt-2 space-x-3 text-xs text-white/50">
+                              <span>{tweet.likes} likes</span>
+                              <span>{tweet.retweets} retweets</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-white/50 text-sm">
+                          No tweets available. Check back later.
+                        </div>
+                      )}
                     </div>
                     <div className="p-2 text-center">
-                      <button className="text-xs text-amber-300 hover:text-amber-200">View all notifications</button>
+                      <button 
+                        onClick={fetchTweets}
+                        className="text-xs text-amber-300 hover:text-amber-200"
+                      >
+                        Refresh tweets
+                      </button>
                     </div>
                   </motion.div>
                 )}
@@ -304,23 +354,25 @@ export const AurumNavbar: React.FC<AurumNavbarProps> = ({ className }) => {
             <div className="space-y-1 px-4 py-3">
               {navItems.map((item) => (
                 <React.Fragment key={item.label}>
-                  <button
-                    onClick={() => {
-                      setActiveTab(item.label);
-                      if (!item.children) setIsOpen(false);
-                    }}
-                    className={`flex justify-between items-center w-full text-left rounded-lg py-3 px-4 text-base ${
-                      item.active 
-                        ? "bg-gradient-to-r from-amber-200 to-yellow-400 text-black font-medium" 
-                        : "text-white hover:bg-white/5"
-                    }`}
-                  >
-                    <span className="flex items-center">
-                      {item.icon}
-                      {item.label}
-                    </span>
-                    {item.children && <ChevronDown size={16} className={item.active ? "text-black" : "text-white/50"} />}
-                  </button>
+                  <Link href={item.href}>
+                    <button
+                      onClick={() => {
+                        setActiveTab(item.label);
+                        if (!item.children) setIsOpen(false);
+                      }}
+                      className={`flex justify-between items-center w-full text-left rounded-lg py-3 px-4 text-base ${
+                        item.active 
+                          ? "bg-gradient-to-r from-amber-200 to-yellow-400 text-black font-medium" 
+                          : "text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <span className="flex items-center">
+                        {item.icon}
+                        {item.label}
+                      </span>
+                      {item.children && <ChevronDown size={16} className={item.active ? "text-black" : "text-white/50"} />}
+                    </button>
+                  </Link>
                   
                   {item.children && item.active && (
                     <div className="pl-4 space-y-1 mt-1 mb-2">

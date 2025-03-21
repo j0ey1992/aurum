@@ -1,4 +1,4 @@
-# AUT Token Perpetual Trading Platform Implementation Plan
+ # AUT Token Perpetual Trading Platform Implementation Plan
 
 ## Overview
 
@@ -38,7 +38,6 @@ The platform will consist of the following core smart contracts:
 For reliable AUT token pricing:
 
 1. **Primary Source**: VVS Finance AUT/WCRO pool
-2. **Secondary Source**: MM Finance AUT/USDC pool
 3. **Fallback**: Weighted average from all available DEX pools
 
 Implementation approach:

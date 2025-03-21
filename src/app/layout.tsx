@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aurum | Modern Gold Trading Platform",
+  title: "AurumTrust | Deflationary Token",
   description: "Track gold prices and test your prediction skills with our interactive mini-game.",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
